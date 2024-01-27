@@ -15,26 +15,26 @@ type Locker interface {
 	RLocker() sync.Locker
 }
 
-type ConcurrentCache[KeyType comparable, ValueType any] interface {
+type ConcurrentCache[T any] interface {
 	Close()
-	AccessRead(callback func(cache map[KeyType]ValueType))
-	AccessWrite(callback func(cache map[KeyType]ValueType))
+	AccessRead(callback func(cache T))
+	AccessWrite(callback func(cache T))
 }
 
-type concurrentCache[KeyType comparable, ValueType any] struct {
+type concurrentCache[T any] struct {
 	sync.RWMutex
 	stopChan chan struct{}
 	wg       sync.WaitGroup
-	cache    map[KeyType]ValueType
-	update   func(locker Locker, cache map[KeyType]ValueType)
+	cache    T
+	update   func(locker Locker, cache T)
 }
 
-func NewConcurrentCache[KeyType comparable, ValueType any](updateInterval time.Duration, update func(locker Locker, cache map[KeyType]ValueType)) ConcurrentCache[KeyType, ValueType] {
-	c := &concurrentCache[KeyType, ValueType]{
+func NewConcurrentCache[T any](cache T, updateInterval time.Duration, update func(locker Locker, cache T)) ConcurrentCache[T] {
+	c := &concurrentCache[T]{
 		RWMutex:  sync.RWMutex{},
 		stopChan: make(chan struct{}),
 		wg:       sync.WaitGroup{},
-		cache:    make(map[KeyType]ValueType),
+		cache:    cache,
 		update:   update,
 	}
 
@@ -55,18 +55,18 @@ func NewConcurrentCache[KeyType comparable, ValueType any](updateInterval time.D
 	return c
 }
 
-func (c *concurrentCache[KeyType, ValueType]) Close() {
+func (c *concurrentCache[T]) Close() {
 	close(c.stopChan)
 	c.wg.Wait()
 }
 
-func (c *concurrentCache[KeyType, ValueType]) AccessRead(callback func(cache map[KeyType]ValueType)) {
+func (c *concurrentCache[T]) AccessRead(callback func(cache T)) {
 	c.RLock()
 	defer c.RUnlock()
 	callback(c.cache)
 }
 
-func (c *concurrentCache[KeyType, ValueType]) AccessWrite(callback func(cache map[KeyType]ValueType)) {
+func (c *concurrentCache[T]) AccessWrite(callback func(cache T)) {
 	c.Lock()
 	defer c.Unlock()
 	callback(c.cache)

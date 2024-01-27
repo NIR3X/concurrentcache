@@ -28,7 +28,7 @@ import (
 
 func main() {
 	// Create a new concurrent cache with a one-second update interval.
-	c := concurrentcache.NewConcurrentCache[string, []uint8](time.Second, func(locker concurrentcache.Locker, cache map[string][]uint8) {
+	c := concurrentcache.NewConcurrentCache[map[string][]uint8](make(map[string][]uint8), time.Second, func(locker concurrentcache.Locker, cache map[string][]uint8) {
 		locker.Lock()
 		defer locker.Unlock()
 		// Your custom update logic here

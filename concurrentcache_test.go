@@ -7,7 +7,7 @@ import (
 )
 
 func TestConcurrentCache(t *testing.T) {
-	c := NewConcurrentCache[string, []uint8](time.Second, func(locker Locker, cache map[string][]uint8) {
+	c := NewConcurrentCache[map[string][]uint8](make(map[string][]uint8), time.Second, func(locker Locker, cache map[string][]uint8) {
 		locker.Lock()
 		defer locker.Unlock()
 		for key, value := range cache {
