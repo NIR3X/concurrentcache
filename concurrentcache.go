@@ -60,6 +60,10 @@ func (c *concurrentCache[T]) Close() {
 	c.wg.Wait()
 }
 
+func (c *concurrentCache[T]) Access(callback func(locker Locker, cache T)) {
+	callback(c, c.cache)
+}
+
 func (c *concurrentCache[T]) AccessRead(callback func(cache T)) {
 	c.RLock()
 	defer c.RUnlock()
