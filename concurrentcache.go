@@ -17,6 +17,7 @@ type Locker interface {
 
 type ConcurrentCache[T any] interface {
 	Close()
+	Access(callback func(locker Locker, cache T))
 	AccessRead(callback func(cache T))
 	AccessWrite(callback func(cache T))
 }
